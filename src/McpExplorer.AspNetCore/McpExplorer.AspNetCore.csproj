@@ -7,7 +7,7 @@
     <RootNamespace>McpExplorer</RootNamespace>
 
     <PackageId>McpExplorer.AspNetCore</PackageId>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Description>Swagger/Scalar-style interactive UI for Model Context Protocol (MCP) servers in ASP.NET Core. Add one line (app.MapMcpExplorer()) to browse all MCP tools, fill schema-generated forms, send requests with custom headers (Authorization, tokens) and inspect responses.</Description>
     <PackageTags>mcp;model-context-protocol;swagger;scalar;ui;aspnetcore</PackageTags>
     <RepositoryUrl>https://github.com/devvolkankocak/McpExplorer.AspNetCore</RepositoryUrl>
@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
+    <PackageReference Include="ModelContextProtocol" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
