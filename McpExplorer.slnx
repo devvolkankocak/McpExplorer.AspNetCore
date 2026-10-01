@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/ExampleBackendApi/ExampleBackendApi.csproj" />
+    <Project Path="samples/SampleMcpServer/SampleMcpServer.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/McpExplorer.AspNetCore/McpExplorer.AspNetCore.csproj" />
+  </Folder>
+</Solution>
