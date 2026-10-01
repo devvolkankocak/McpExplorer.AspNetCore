@@ -170,3 +170,7 @@ Production'da kapatın ya da `.RequireAuthorization()` ile koruyun.
 
 Resources ve Prompts sekmeleri, progress/log bildirimleri (SSE ile canlı), istek geçmişi, stdio sunucular için destek,
 OAuth akışı.
+
+## Lisans
+
+[MIT](LICENSE)
