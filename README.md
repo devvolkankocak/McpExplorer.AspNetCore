@@ -132,6 +132,14 @@ Visual Studio / Rider ile: `McpExplorer.slnx`'i aç, `ExampleBackendApi`'yi star
 
 ## Kendi projene ekleme
 
+nuget.org'dan:
+
+```bash
+dotnet add package McpExplorer.AspNetCore
+```
+
+Ya da yayınlanmamış bir sürümü yerel `.nupkg` ile:
+
 1. `McpExplorer.AspNetCore.0.2.0.nupkg` dosyasını bir klasöre koy (ör. `C:\nuget-local`).
 2. Kaynak olarak ekle ve paketi kur:
    ```bash
@@ -145,6 +153,11 @@ Visual Studio / Rider ile: `McpExplorer.slnx`'i aç, `ExampleBackendApi`'yi star
    if (app.Environment.IsDevelopment())
        app.MapMcpExplorer("/mcp-explorer");
    ```
+
+## Yayınlama
+
+`vX.Y.Z` etiketi push edilince `.github/workflows/publish.yml` paketi o sürümle nuget.org'a gönderir ve
+`.nupkg` dosyasını GitHub Release'e ekler. Repo ayarlarında `NUGET_API_KEY` secret'ı tanımlı olmalı.
 
 NuGet paketini yeniden üretmek için: `dotnet pack src/McpExplorer.AspNetCore -c Release -o packages`
 
