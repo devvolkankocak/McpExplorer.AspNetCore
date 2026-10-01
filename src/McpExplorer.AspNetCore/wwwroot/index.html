@@ -4,141 +4,216 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{TITLE}}</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%234f46e5%22/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%224%22 fill=%22%2318181b%22/%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#f6f7f9;--panel:#fff;--panel-2:#f1f3f6;--border:#dfe3e8;--text:#1b1f24;--muted:#5f6b7a;
-  --accent:#4f46e5;--accent-soft:#eef0ff;--ok:#0f8a4b;--ok-soft:#e6f6ee;--err:#c62828;--err-soft:#fdecec;--warn:#a15c00;--warn-soft:#fff4e0;
-  --code:#0f172a;--code-text:#e2e8f0;--radius:10px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --bg:#ffffff;--panel:#ffffff;--sunken:#f7f7f8;--hover:#f2f2f4;--border:#e4e4e7;--border-strong:#d4d4d8;
+  --text:#18181b;--text-2:#3f3f46;--muted:#71717a;
+  --primary:#18181b;--primary-text:#ffffff;--focus:#2563eb;--focus-ring:rgba(37,99,235,.18);
+  --ok:#15803d;--err:#b91c1c;--warn:#a16207;
+  --code-bg:#f7f7f8;--code-text:#27272a;--code-key:#1d4ed8;--code-str:#15803d;--code-num:#b45309;
+  --radius:6px;--sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --bg:#0d1117;--panel:#151b23;--panel-2:#1c232d;--border:#2a3340;--text:#e6edf3;--muted:#8b98a8;
-  --accent:#8b8cff;--accent-soft:#23264a;--ok:#3fb950;--ok-soft:#12261a;--err:#ff6b6b;--err-soft:#2d1517;--warn:#e3a33b;--warn-soft:#2b2110;--code:#0a0e14;
+  --bg:#0b0b0d;--panel:#111113;--sunken:#16161a;--hover:#1c1c21;--border:#26262b;--border-strong:#34343a;
+  --text:#ededef;--text-2:#c8c8cd;--muted:#8b8b93;
+  --primary:#ededef;--primary-text:#111113;--focus:#60a5fa;--focus-ring:rgba(96,165,250,.22);
+  --ok:#4ade80;--err:#f87171;--warn:#facc15;
+  --code-bg:#16161a;--code-text:#d4d4d8;--code-key:#93c5fd;--code-str:#86efac;--code-num:#fcd34d;
 }}
 :root[data-theme=dark]{
-  --bg:#0d1117;--panel:#151b23;--panel-2:#1c232d;--border:#2a3340;--text:#e6edf3;--muted:#8b98a8;
-  --accent:#8b8cff;--accent-soft:#23264a;--ok:#3fb950;--ok-soft:#12261a;--err:#ff6b6b;--err-soft:#2d1517;--warn:#e3a33b;--warn-soft:#2b2110;--code:#0a0e14;
+  --bg:#0b0b0d;--panel:#111113;--sunken:#16161a;--hover:#1c1c21;--border:#26262b;--border-strong:#34343a;
+  --text:#ededef;--text-2:#c8c8cd;--muted:#8b8b93;
+  --primary:#ededef;--primary-text:#111113;--focus:#60a5fa;--focus-ring:rgba(96,165,250,.22);
+  --ok:#4ade80;--err:#f87171;--warn:#facc15;
+  --code-bg:#16161a;--code-text:#d4d4d8;--code-key:#93c5fd;--code-str:#86efac;--code-num:#fcd34d;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{background:var(--bg);color:var(--text);font:13.5px/1.55 var(--sans);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-wrap:wrap}
-.logo{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
-.logo .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
-.logo .dot.on{background:var(--ok)}.logo .dot.off{background:var(--err)}
-.server-meta{color:var(--muted);font-size:13px}
-.endpoint{display:flex;gap:8px;flex:1;min-width:260px;max-width:640px;margin-left:auto}
-.endpoint input{flex:1;min-width:0}
+svg.i{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* top bar */
+header{display:flex;align-items:center;gap:16px;height:52px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--border);flex:none}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
+.brand .mark{width:22px;height:22px;border-radius:5px;background:var(--primary);color:var(--primary-text);display:grid;place-items:center;font:600 11px/1 var(--mono);letter-spacing:-.02em;flex:none}
+.brand .name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sep{width:1px;height:20px;background:var(--border)}
+.server-meta{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border-strong);flex:none}
+.dot.on{background:var(--ok)}.dot.off{background:var(--err)}
+.endpoint{display:flex;align-items:stretch;flex:1;min-width:240px;max-width:620px;margin-left:auto;height:32px}
+.endpoint .scheme{display:flex;align-items:center;padding:0 10px;border:1px solid var(--border);border-right:none;border-radius:var(--radius) 0 0 var(--radius);background:var(--sunken);color:var(--muted);font:500 11px/1 var(--mono);letter-spacing:.04em}
+.endpoint input{flex:1;min-width:0;border-radius:0 var(--radius) var(--radius) 0!important;font-family:var(--mono)!important;font-size:12.5px!important;height:32px}
+.endpoint .btn{margin-left:8px;height:32px}
+
+/* controls */
 input[type=text],input[type=number],input[type=url],input[type=email],input[type=date],input[type=datetime-local],input[type=password],select,textarea{
-  background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-input[readonly]{background:var(--panel-2);color:var(--muted)}
-textarea{font-family:var(--mono);font-size:13px;min-height:90px;resize:vertical}
-.btn{border:1px solid var(--border);background:var(--panel);border-radius:8px;padding:7px 14px;cursor:pointer;white-space:nowrap}
-.btn:hover{background:var(--panel-2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.small{padding:3px 9px;font-size:12px}
-.btn:disabled{opacity:.6;cursor:default}
-.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 57px)}
-aside{border-right:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;min-height:0}
-.search{padding:12px;border-bottom:1px solid var(--border)}
-.tool-list{overflow:auto;flex:1;padding:6px}
-.tool-item{padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
-.tool-item:hover{background:var(--panel-2)}
-.tool-item.active{background:var(--accent-soft);border-color:var(--accent)}
-.tool-item .name{font-family:var(--mono);font-size:13px;font-weight:600;word-break:break-all}
-.tool-item .desc{color:var(--muted);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.count{color:var(--muted);font-size:12px;padding:4px 12px}
-main{overflow:auto;padding:24px;min-width:0}
-.empty{color:var(--muted);text-align:center;margin-top:80px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
-.card-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.card-h h3{margin:0;font-size:14px}
-.card-b{padding:16px}
-.tool-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px}
-.tool-title h2{margin:0;font-family:var(--mono);font-size:20px;word-break:break-all}
-.method{font-family:var(--mono);font-size:12px;font-weight:700;background:var(--accent);color:#fff;padding:2px 8px;border-radius:6px}
-.tool-desc{color:var(--muted);margin:0 0 16px;white-space:pre-wrap}
-.badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-.badge.warn{color:var(--warn);background:var(--warn-soft);border-color:transparent}
-.badge.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
-.badge.err{color:var(--err);background:var(--err-soft);border-color:transparent}
-.tabs{display:flex;gap:4px;margin-left:auto}
-.tab{border:none;background:none;padding:4px 10px;border-radius:6px;cursor:pointer;color:var(--muted)}
-.tab.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
-.field{margin-bottom:14px}
-.field>label,.field>.lbl{display:flex;gap:6px;align-items:baseline;font-weight:600;margin-bottom:4px;flex-wrap:wrap}
-.field .type{font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400}
-.field .req{color:var(--err);font-size:11px;font-weight:600}
-.field .hint{color:var(--muted);font-size:12px;margin-top:3px}
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;width:100%;outline:none;transition:border-color .12s,box-shadow .12s}
+input:hover,select:hover,textarea:hover{border-color:var(--border-strong)}
+input:focus,select:focus,textarea:focus{border-color:var(--focus);box-shadow:0 0 0 3px var(--focus-ring)}
+input[readonly]{background:var(--sunken);color:var(--muted)}
+textarea{font-family:var(--mono);font-size:12.5px;min-height:90px;resize:vertical}
+input[type=checkbox]{accent-color:var(--primary);width:14px;height:14px;margin:0}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--panel);border-radius:var(--radius);padding:0 12px;height:30px;cursor:pointer;white-space:nowrap;font-weight:500;font-size:13px;color:var(--text-2);transition:background .12s,border-color .12s}
+.btn:hover{background:var(--hover);border-color:var(--border-strong)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.btn.primary:hover{opacity:.88}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.ghost:hover{background:var(--hover);color:var(--text)}
+.btn.small{height:24px;padding:0 8px;font-size:12px}
+.btn.icon{width:30px;padding:0;justify-content:center}
+.btn.small.icon{width:24px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.attn{border-color:var(--err);color:var(--err)}
+.btn .count-pill{font:500 11px/1 var(--mono);color:var(--muted)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:288px minmax(0,1fr);flex:1;min-height:0}
+aside{border-right:1px solid var(--border);background:var(--sunken);display:flex;flex-direction:column;min-height:0}
+.search{padding:12px 12px 8px;position:relative}
+.search svg{position:absolute;left:22px;top:21px;color:var(--muted)}
+.search input{padding-left:30px;background:var(--panel)}
+.list-h{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 6px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.list-h span:last-child{font-family:var(--mono);letter-spacing:0;font-weight:500}
+.tool-list{overflow:auto;flex:1;padding:0 8px 12px}
+.tool-item{position:relative;padding:7px 10px 7px 12px;border-radius:5px;cursor:pointer;margin-bottom:1px}
+.tool-item:hover{background:var(--hover)}
+.tool-item.active{background:var(--panel);box-shadow:0 0 0 1px var(--border)}
+.tool-item.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--primary)}
+.tool-item .name{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--text);word-break:break-all}
+.tool-item .desc{color:var(--muted);font-size:12px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+main{overflow:auto;min-width:0}
+.content{max-width:960px;padding:28px 32px 48px}
+.empty{color:var(--muted);text-align:center;margin-top:96px;font-size:13px}
+
+/* tool page */
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tool-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px}
+.tool-title h2{margin:0 6px 0 0;font:600 20px/1.3 var(--mono);letter-spacing:-.01em;word-break:break-all}
+.tool-subtitle{font-weight:500;color:var(--text-2);margin-bottom:2px}
+.tool-desc{color:var(--muted);margin:0 0 22px;white-space:pre-wrap;max-width:72ch}
+.tag{display:inline-flex;align-items:center;gap:5px;font:500 11px/1 var(--sans);padding:4px 7px;border-radius:4px;border:1px solid var(--border);color:var(--muted);background:var(--panel)}
+.tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.tag.plain::before{display:none}
+.tag.ok{color:var(--ok)}.tag.err{color:var(--err)}.tag.warn{color:var(--warn)}
+.badge{font:500 11px/1 var(--mono);padding:3px 6px;border-radius:4px;border:1px solid var(--border);color:var(--muted)}
+.badge.ok{color:var(--ok)}.badge.err{color:var(--err)}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;padding:0 16px;height:44px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-h h3{margin:0;font-size:13px;font-weight:600}
+.card-b{padding:18px 16px}
+.card-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);background:var(--sunken)}
+.tabs{display:flex;gap:2px;margin-left:auto;align-self:stretch}
+.tab{border:none;background:none;padding:0 10px;cursor:pointer;color:var(--muted);font-size:12.5px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--primary)}
+
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field>label,.field>.lbl{display:flex;gap:8px;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;font:500 12.5px/1.4 var(--mono);color:var(--text)}
+.field .type{font-size:11.5px;color:var(--muted);font-weight:400}
+.field .req{color:var(--err);font:500 11px/1 var(--sans)}
+.field .hint{color:var(--muted);font-size:12px;margin-top:5px}
 .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--err)}
-.nested{border-left:2px solid var(--border);padding-left:12px;margin-top:6px}
+.nested{border-left:1px solid var(--border);padding:2px 0 2px 14px;margin-top:4px}
 .arr-row{display:flex;gap:6px;margin-bottom:6px}
-.check{display:flex;align-items:center;gap:8px;font-weight:400}
-.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
-pre{margin:0;background:var(--code);color:var(--code-text);padding:12px 14px;border-radius:8px;overflow:auto;font:12.5px/1.55 var(--mono);white-space:pre-wrap;word-break:break-word;max-height:520px}
-.block{margin-bottom:12px}
-.block .bh{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;gap:8px;align-items:center}
-.block img{max-width:100%;border-radius:8px;border:1px solid var(--border)}
-.status{display:flex;gap:8px;align-items:center}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+pre{margin:0;background:var(--code-bg);color:var(--code-text);border:1px solid var(--border);padding:12px 14px;border-radius:var(--radius);overflow:auto;font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word;max-height:520px}
+pre .k{color:var(--code-key)}pre .s{color:var(--code-str)}pre .n{color:var(--code-num)}pre .b{color:var(--code-num)}
+.block{margin-bottom:14px}
+.block:last-child{margin-bottom:0}
+.block .bh{font-size:11.5px;color:var(--muted);margin-bottom:6px;display:flex;gap:8px;align-items:center;font-family:var(--mono)}
+.block .bh .btn{margin-left:auto}
+.block img{max-width:100%;border-radius:var(--radius);border:1px solid var(--border)}
 .muted{color:var(--muted)}
-.error-box{background:var(--err-soft);color:var(--err);padding:10px 12px;border-radius:8px;white-space:pre-wrap}
-.kv{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center}
+.error-box{border:1px solid color-mix(in srgb,var(--err) 35%,transparent);background:color-mix(in srgb,var(--err) 6%,transparent);color:var(--err);padding:10px 12px;border-radius:var(--radius);white-space:pre-wrap;font-size:12.5px}
+details summary{cursor:pointer;color:var(--muted);font-size:12.5px;margin-top:14px;user-select:none}
+details[open] summary{margin-bottom:8px}
+.status-line{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.status-line .meta+.meta{padding-left:10px;border-left:1px solid var(--border)}
+.status-line .stat{font-weight:600}
+.status-line .stat.ok{color:var(--ok)}.status-line .stat.err{color:var(--err)}
+.status-line .meta{color:var(--muted);font-family:var(--mono);font-size:12px}
+.kv-table{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:12.5px;margin:0 0 14px}
+.kv-table dt{color:var(--muted)}.kv-table dd{margin:0;font-family:var(--mono);word-break:break-all}
+
+/* headers dialog */
+dialog{border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--text);width:min(620px,calc(100vw - 32px));padding:0;box-shadow:0 16px 48px rgba(0,0,0,.18)}
+dialog::backdrop{background:rgba(9,9,11,.45)}
+.dlg-h{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.dlg-h h3{margin:0 0 2px;font-size:14px;font-weight:600}
+.dlg-h p{margin:0;color:var(--muted);font-size:12.5px}
+.dlg-b{padding:4px 18px 16px;max-height:min(68vh,640px);overflow:auto}
+.dlg-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--border);background:var(--sunken)}
+.section-t{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 8px}
 .hdr-def{padding:10px 0;border-bottom:1px solid var(--border)}
 .hdr-def:last-child{border-bottom:none}
-.hdr-def .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
-.hdr-def .top code{font-weight:600}
+.hdr-def .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.hdr-def .top code{font:500 12.5px var(--mono)}
 .hdr-def .val{display:flex;gap:6px;align-items:center}
-.section-t{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
-.section-t:first-child{margin-top:0}
-.btn.attn{border-color:var(--err);color:var(--err)}
-dialog{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);color:var(--text);width:min(560px,calc(100vw - 32px));padding:0}
-dialog::backdrop{background:rgba(0,0,0,.4)}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite}
+.hdr-def .val input{font-family:var(--mono);font-size:12.5px}
+.kv{display:grid;grid-template-columns:auto minmax(0,.8fr) minmax(0,1.2fr) auto;gap:6px;margin-bottom:6px;align-items:center}
+.kv input[type=text]{font-family:var(--mono);font-size:12.5px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}
+.presets .lead{font-size:12px;color:var(--muted);margin-right:2px}
+.preset{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font:500 12px var(--mono);color:var(--text-2)}
+.preset:hover{border-style:solid;background:var(--hover);color:var(--text)}
+.preset .ex{color:var(--muted);font-weight:400}
+.preset svg{color:var(--muted)}
+.spin{display:inline-block;width:12px;height:12px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
-.instructions{white-space:pre-wrap;color:var(--muted);font-size:13px}
+.instructions{white-space:pre-wrap;color:var(--text-2);font-size:13px;margin:0 0 14px}
 @media (max-width:760px){
-  .layout{grid-template-columns:1fr;height:auto}
-  aside{border-right:none;border-bottom:1px solid var(--border);max-height:40vh}
-  main{padding:16px}
-  .endpoint{max-width:none;margin-left:0}
+  header{height:auto;flex-wrap:wrap;padding:10px 16px;gap:10px}
+  .sep,#serverMeta{display:none}
+  .endpoint{max-width:none;margin-left:0;flex-basis:100%}
+  .layout{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
+  .tabs .tab{padding:0 8px}
+  aside{border-right:none;border-bottom:1px solid var(--border);max-height:38vh}
+  .content{padding:20px 16px 40px}
+  .kv{grid-template-columns:auto 1fr auto}.kv input:nth-of-type(3){grid-column:2/3}
 }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><span class="dot" id="dot"></span><span id="title">{{TITLE}}</span></div>
-  <div class="server-meta" id="serverMeta">Not connected</div>
+  <div class="brand" id="brand" title="Server overview"><span class="mark">M</span><span class="name" id="title">{{TITLE}}</span></div>
+  <span class="sep"></span>
+  <div class="server-meta"><span class="dot" id="dot"></span><span id="serverMeta">Not connected</span></div>
   <div class="endpoint">
+    <span class="scheme">MCP</span>
     <input type="text" id="endpoint" spellcheck="false" aria-label="MCP endpoint">
-    <button class="btn" id="headersBtn" title="Request headers">Headers <span id="hdrCount"></span></button>
+    <button class="btn" id="headersBtn" title="Request headers">Headers <span class="count-pill" id="hdrCount"></span></button>
     <button class="btn primary" id="connectBtn">Connect</button>
   </div>
 </header>
 
 <div class="layout">
   <aside>
-    <div class="search"><input type="text" id="search" placeholder="Filter tools…" aria-label="Filter tools"></div>
-    <div class="count" id="count"></div>
+    <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="search" placeholder="Filter tools" aria-label="Filter tools"></div>
+    <div class="list-h"><span>Tools</span><span id="count"></span></div>
     <div class="tool-list" id="toolList"></div>
   </aside>
   <main id="main"><div class="empty">Connect to an MCP server to see its tools.</div></main>
 </div>
 
 <dialog id="headersDlg">
-  <div class="card-h"><h3>Request headers</h3><span class="muted" style="font-size:12px">Sent to the MCP server with every list and call request. Values are stored in this browser only.</span></div>
-  <div class="card-b">
+  <div class="dlg-h"><h3>Request headers</h3><p>Sent to the MCP server with every list and call request. Values are stored in this browser only.</p></div>
+  <div class="dlg-b">
     <div id="hdrDefs"></div>
     <div class="section-t">Custom headers</div>
+    <div class="presets" id="hdrPresets"></div>
     <div id="hdrRows"></div>
+    <button class="btn small ghost" id="addHdr"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add empty header</button>
     <div id="hdrServer"></div>
-    <div class="actions">
-      <button class="btn small" id="addHdr">+ Add header</button>
-      <span style="flex:1"></span>
-      <button class="btn primary" id="hdrClose">Save &amp; reconnect</button>
-    </div>
+  </div>
+  <div class="dlg-f">
+    <button class="btn" id="hdrCancel">Close</button>
+    <button class="btn primary" id="hdrClose">Save and reconnect</button>
   </div>
 </dialog>
 
@@ -157,6 +232,32 @@ const el = (tag, attrs = {}, ...kids) => {
   for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : document.createTextNode(k));
   return e;
 };
+const ICONS = {
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  play: '<path d="M7 5v14l11-7z" fill="currentColor" stroke="none"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  reset: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+};
+const icon = n => { const t = document.createElement('template'); t.innerHTML = `<svg class="i" viewBox="0 0 24 24">${ICONS[n]}</svg>`; return t.content.firstChild; };
+// Pretty JSON with light syntax colouring; values are escaped via textContent.
+function jsonPre(value) {
+  const pre = el('pre');
+  const src = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  const re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  let last = 0, m;
+  while ((m = re.exec(src))) {
+    if (m.index > last) pre.append(src.slice(last, m.index));
+    const cls = m[1] ? (m[2] ? 'k' : 's') : m[3] ? 'b' : 'n';
+    pre.append(el('span', { class: cls, text: m[1] || m[0] }));
+    if (m[2]) pre.append(m[2]);
+    last = re.lastIndex;
+  }
+  pre.append(src.slice(last));
+  return pre;
+}
+const page = (...kids) => el('div', { class: 'content' }, ...kids);
 const store = {
   get(k, d) { try { const v = localStorage.getItem('mcpexplorer:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('mcpexplorer:' + k, JSON.stringify(v)); } catch {} }
@@ -184,7 +285,7 @@ const serverHas = name => (state.config?.serverHeaders || []).some(n => n.toLowe
 const missingRequired = () => defs().filter(d => d.required && !serverHas(d.name) && !(defValue(d) && !state.hdr.disabled[d.name])).map(d => d.name);
 function updateHeaderBtn() {
   const n = Object.keys(activeHeaders()).length, miss = missingRequired();
-  $('#hdrCount').textContent = n ? `(${n})` : '';
+  $('#hdrCount').textContent = n ? String(n) : '';
   $('#headersBtn').classList.toggle('attn', miss.length > 0);
   $('#headersBtn').title = miss.length ? 'Required: ' + miss.join(', ') : 'Request headers';
 }
@@ -205,10 +306,10 @@ async function connect() {
   if (miss.length) {
     $('#dot').className = 'dot off';
     $('#serverMeta').textContent = 'Headers required';
-    $('#main').replaceChildren(el('div', { class: 'card' },
-      el('div', { class: 'card-h' }, el('h3', { text: 'This MCP server needs headers' })),
-      el('div', { class: 'card-b' }, el('p', { text: 'Fill in the required headers before connecting: ' + miss.join(', ') }),
-        el('button', { class: 'btn primary', text: 'Open headers', onclick: openHeaders }))));
+    $('#main').replaceChildren(page(el('div', { class: 'card' },
+      el('div', { class: 'card-h' }, el('h3', { text: 'Headers required' })),
+      el('div', { class: 'card-b' }, el('p', { style: 'margin:0 0 14px', text: 'This server needs the following headers before it can be reached: ' + miss.join(', ') + '.' }),
+        el('button', { class: 'btn primary', text: 'Open headers', onclick: openHeaders })))));
     return;
   }
   btn.disabled = true; btn.replaceChildren(el('span', { class: 'spin' }));
@@ -221,14 +322,14 @@ async function connect() {
     $('#dot').className = 'dot off';
     $('#serverMeta').textContent = 'Connection failed';
     state.tools = []; renderList();
-    $('#main').replaceChildren(el('div', { class: 'card' },
+    $('#main').replaceChildren(page(el('div', { class: 'card' },
       el('div', { class: 'card-h' }, el('h3', { text: 'Could not connect' })),
-      el('div', { class: 'card-b' }, el('div', { class: 'error-box', text: r.error || 'Unknown error' }))));
+      el('div', { class: 'card-b' }, el('div', { class: 'error-box', text: r.error || 'Unknown error' })))));
     return;
   }
   $('#dot').className = 'dot on';
   const s = r.server || {};
-  $('#serverMeta').textContent = `${s.title || s.name || 'MCP server'} ${s.version ? 'v' + s.version : ''} · protocol ${r.protocolVersion || '?'} · ${r.elapsedMs} ms`;
+  $('#serverMeta').textContent = `${s.title || s.name || 'MCP server'}${s.version ? ' ' + s.version : ''} · ${r.protocolVersion || '?'} · ${r.elapsedMs} ms`;
   state.server = r;
   state.tools = (r.tools || []).slice().sort((a, b) => a.name.localeCompare(b.name));
   renderList();
@@ -240,20 +341,29 @@ async function connect() {
 function renderOverview() {
   state.selected = null; renderList();
   const r = state.server; if (!r) return;
-  $('#main').replaceChildren(el('div', { class: 'card' },
-    el('div', { class: 'card-h' }, el('h3', { text: r.server?.title || r.server?.name || 'Server' }), el('span', { class: 'badge', text: `${state.tools.length} tools` })),
-    el('div', { class: 'card-b' },
-      el('div', { class: 'muted', text: r.endpoint }),
-      r.instructions ? el('p', { class: 'instructions', text: r.instructions }) : null,
-      el('p', { text: 'Pick a tool on the left to see its schema and try it out.' }),
-      el('details', {}, el('summary', { class: 'muted', text: 'Server capabilities' }), el('pre', { text: JSON.stringify(r.capabilities, null, 2) })))));
+  const s = r.server || {};
+  $('#main').replaceChildren(page(
+    el('div', { class: 'eyebrow', text: 'Server' }),
+    el('div', { class: 'tool-title' }, el('h2', { style: 'font-family:var(--sans)', text: s.title || s.name || 'MCP server' })),
+    el('p', { class: 'tool-desc', text: 'Select a tool from the list to inspect its schema and send a request.' }),
+    el('div', { class: 'card' },
+      el('div', { class: 'card-h' }, el('h3', { text: 'Connection' })),
+      el('div', { class: 'card-b' },
+        el('dl', { class: 'kv-table' },
+          el('dt', { text: 'Endpoint' }), el('dd', { text: r.endpoint }),
+          el('dt', { text: 'Server' }), el('dd', { text: `${s.name || '?'}${s.version ? ' ' + s.version : ''}` }),
+          el('dt', { text: 'Protocol' }), el('dd', { text: r.protocolVersion || '?' }),
+          el('dt', { text: 'Tools' }), el('dd', { text: String(state.tools.length) }),
+          el('dt', { text: 'Capabilities' }), el('dd', { text: Object.keys(r.capabilities || {}).join(', ') || 'none' })),
+        r.instructions ? el('div', {}, el('div', { class: 'section-t', text: 'Instructions' }), el('p', { class: 'instructions', text: r.instructions })) : null,
+        el('details', {}, el('summary', { text: 'Raw capabilities' }), jsonPre(r.capabilities || {}))))));
 }
 
 // ---------- Tool list ----------
 function renderList() {
   const q = $('#search').value.trim().toLowerCase();
   const list = state.tools.filter(t => !q || t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q) || (t.title || '').toLowerCase().includes(q));
-  $('#count').textContent = state.tools.length ? `${list.length} of ${state.tools.length} tools` : '';
+  $('#count').textContent = !state.tools.length ? '' : list.length === state.tools.length ? String(list.length) : `${list.length} / ${state.tools.length}`;
   $('#toolList').replaceChildren(...list.map(t => el('div', {
     class: 'tool-item' + (state.selected?.name === t.name ? ' active' : ''), onclick: () => select(t), title: t.name
   }, el('div', { class: 'name', text: t.name }), t.description ? el('div', { class: 'desc', text: t.description }) : null)));
@@ -339,12 +449,12 @@ function buildField(name, schema, required) {
     const add = v => {
       const f = buildField('', schema.items, true);
       const inp = f.node.querySelector('input,select,textarea');
-      const row = el('div', { class: 'arr-row' }, inp, el('button', { class: 'btn small', type: 'button', text: '✕', title: 'Remove', onclick: () => { row.remove(); items.splice(items.indexOf(f), 1); } }));
+      const row = el('div', { class: 'arr-row' }, inp, el('button', { class: 'btn icon', type: 'button', title: 'Remove item', 'aria-label': 'Remove item', onclick: () => { row.remove(); items.splice(items.indexOf(f), 1); } }, icon('x')));
       if (v !== undefined) f.set(v);
       items.push(f); rows.append(row);
     };
     const items = [];
-    wrap.append(...[el('div', { class: 'lbl' }, ...lbl.childNodes), rows, el('button', { class: 'btn small', type: 'button', text: '+ Add item', onclick: () => add() }), hint ? el('div', { class: 'hint', text: hint }) : null].filter(Boolean));
+    wrap.append(...[el('div', { class: 'lbl' }, ...lbl.childNodes), rows, el('button', { class: 'btn small ghost', type: 'button', onclick: () => add() }, icon('plus'), 'Add item'), hint ? el('div', { class: 'hint', text: hint }) : null].filter(Boolean));
     return {
       node: wrap,
       get: () => { const vals = []; for (const f of items) { const r = f.get(); if (r.error) return r; if (r.set) vals.push(r.value); } return vals.length || required ? { set: true, value: vals } : { set: false }; },
@@ -395,7 +505,7 @@ function select(tool) {
   const hasProps = Object.keys(schema.properties || {}).length > 0;
   const form = buildObject(schema);
   const json = el('textarea', { rows: 12, spellcheck: 'false' });
-  let mode = 'form';
+  let mode = 'form', shown = 'form';
 
   const draft = state.drafts[tool.name];
   form.set(draft ?? schema.default ?? {});
@@ -406,58 +516,66 @@ function select(tool) {
     return form.get();
   };
   const tabs = el('div', { class: 'tabs' });
+  // mode = where arguments are edited (form | json); shown = visible tab (form | json | schema)
   const setMode = m => {
-    if (m === mode) return;
-    if (m === 'json') { const r = form.get(); json.value = JSON.stringify(r.error ? {} : r.value, null, 2); }
-    else { try { form.set(JSON.parse(json.value || '{}')); } catch { } }
-    mode = m; formBox.hidden = m !== 'form'; jsonBox.hidden = m !== 'json';
+    if (m === shown) return;
+    if (m !== 'schema' && m !== mode) {
+      if (m === 'json') { const r = form.get(); json.value = JSON.stringify(r.error ? {} : r.value, null, 2); }
+      else { try { form.set(JSON.parse(json.value || '{}')); } catch { } }
+      mode = m;
+    }
+    shown = m;
+    formBox.hidden = m !== 'form'; jsonBox.hidden = m !== 'json'; schemaBox.hidden = m !== 'schema';
     [...tabs.children].forEach(b => b.classList.toggle('active', b.dataset.m === m));
   };
   tabs.append(...[['form', 'Form'], ['json', 'JSON'], ['schema', 'Schema']].map(([m, label]) =>
-    el('button', { class: 'tab' + (m === 'form' ? ' active' : ''), 'data-m': m, text: label, onclick: () => m === 'schema' ? toggleSchema() : setMode(m) })));
+    el('button', { class: 'tab' + (m === 'form' ? ' active' : ''), 'data-m': m, text: label, onclick: () => setMode(m) })));
 
-  const schemaBox = el('div', { hidden: true }, el('pre', { text: JSON.stringify(schema, null, 2) }),
-    tool.outputSchema ? el('div', { class: 'block', style: 'margin-top:12px' }, el('div', { class: 'bh', text: 'Output schema' }), el('pre', { text: JSON.stringify(tool.outputSchema, null, 2) })) : null);
-  const toggleSchema = () => { schemaBox.hidden = !schemaBox.hidden; tabs.querySelector('[data-m=schema]').classList.toggle('active', !schemaBox.hidden); };
+  const schemaBox = el('div', { hidden: true },
+    el('div', { class: 'block' }, el('div', { class: 'bh', text: 'Input schema' }), jsonPre(schema)),
+    tool.outputSchema ? el('div', { class: 'block' }, el('div', { class: 'bh', text: 'Output schema' }), jsonPre(tool.outputSchema)) : null);
 
-  const formBox = el('div', {}, hasProps ? form.node : el('p', { class: 'muted', text: 'This tool takes no arguments.' }));
+  const formBox = el('div', {}, hasProps ? form.node : el('p', { class: 'muted', style: 'margin:0', text: 'This tool takes no arguments.' }));
   const jsonBox = el('div', { hidden: true }, json);
-  const errBox = el('div', { class: 'error-box', hidden: true, style: 'margin-bottom:10px' });
+  const errBox = el('div', { class: 'error-box', hidden: true, style: 'margin-top:14px' });
   const resultCard = el('div');
 
-  const run = el('button', { class: 'btn primary', text: 'Execute', onclick: async () => {
+  const runLabel = () => [icon('play'), 'Send request'];
+  const run = el('button', { class: 'btn primary', onclick: async () => {
     const a = currentArgs();
     errBox.hidden = !a.error; errBox.textContent = a.error || '';
     if (a.error) return;
     state.drafts[tool.name] = a.value;
-    run.disabled = true; run.replaceChildren(el('span', { class: 'spin' }), ' Running…');
+    run.disabled = true; run.replaceChildren(el('span', { class: 'spin' }), 'Sending…');
     const r = await api('call', { endpoint: $('#endpoint').value, tool: tool.name, arguments: a.value });
-    run.disabled = false; run.textContent = 'Execute';
+    run.disabled = false; run.replaceChildren(...runLabel());
     resultCard.replaceChildren(renderResult(r, tool, a.value));
-  }});
-  const copyRpc = el('button', { class: 'btn', text: 'Copy JSON-RPC', title: 'Copy the raw tools/call request', onclick: () => {
+  }}, ...runLabel());
+  const copyRpc = el('button', { class: 'btn', title: 'Copy the raw tools/call request', onclick: () => {
     const a = currentArgs();
     copy(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: tool.name, arguments: a.value || {} } }, null, 2), copyRpc);
-  }});
-  const reset = el('button', { class: 'btn', text: 'Reset', onclick: () => { delete state.drafts[tool.name]; select(tool); } });
+  }}, icon('copy'), 'Copy JSON-RPC');
+  const reset = el('button', { class: 'btn ghost', style: 'margin-left:auto', onclick: () => { delete state.drafts[tool.name]; select(tool); } }, icon('reset'), 'Reset');
 
   const ann = tool.annotations || {};
   const badges = [
-    ann.readOnlyHint && el('span', { class: 'badge ok', text: 'read-only' }),
-    ann.destructiveHint && !ann.readOnlyHint && el('span', { class: 'badge err', text: 'destructive' }),
-    ann.idempotentHint && el('span', { class: 'badge', text: 'idempotent' }),
-    ann.openWorldHint && el('span', { class: 'badge warn', text: 'open-world' }),
-    tool.outputSchema && el('span', { class: 'badge', text: 'structured output' }),
+    ann.readOnlyHint && el('span', { class: 'tag ok', text: 'Read-only' }),
+    ann.destructiveHint && !ann.readOnlyHint && el('span', { class: 'tag err', text: 'Destructive' }),
+    ann.idempotentHint && el('span', { class: 'tag plain', text: 'Idempotent' }),
+    ann.openWorldHint && el('span', { class: 'tag warn', text: 'Open world' }),
+    tool.outputSchema && el('span', { class: 'tag plain', text: 'Structured output' }),
   ].filter(Boolean);
 
-  $('#main').replaceChildren(...[
-    el('div', { class: 'tool-title' }, el('span', { class: 'method', text: 'TOOL' }), el('h2', { text: tool.name }), ...badges),
-    tool.title || ann.title ? el('div', { style: 'font-weight:600;margin-bottom:4px', text: tool.title || ann.title }) : null,
+  $('#main').replaceChildren(page(...[
+    el('div', { class: 'eyebrow', text: 'Tool' }),
+    el('div', { class: 'tool-title' }, el('h2', { text: tool.name }), ...badges),
+    tool.title || ann.title ? el('div', { class: 'tool-subtitle', text: tool.title || ann.title }) : null,
     el('p', { class: 'tool-desc', text: tool.description || 'No description.' }),
     el('div', { class: 'card' },
-      el('div', { class: 'card-h' }, el('h3', { text: 'Arguments' }), tabs),
-      el('div', { class: 'card-b' }, schemaBox, formBox, jsonBox, errBox, el('div', { class: 'actions' }, run, copyRpc, reset))),
-    resultCard].filter(Boolean));
+      el('div', { class: 'card-h' }, el('h3', { text: 'Parameters' }), tabs),
+      el('div', { class: 'card-b' }, schemaBox, formBox, jsonBox, errBox),
+      el('div', { class: 'card-f' }, run, copyRpc, reset)),
+    resultCard].filter(Boolean)));
   $("#main").scrollTop = 0;
 }
 
@@ -465,32 +583,35 @@ function renderResult(r, tool, args) {
   const body = el('div', { class: 'card-b' });
   let badge;
   if (!r.ok) {
-    badge = el('span', { class: 'badge err', text: 'Request failed' });
+    badge = el('span', { class: 'stat err', text: 'Request failed' });
     body.append(el('div', { class: 'error-box', text: r.error || 'Unknown error' }));
   } else {
     const res = r.result || {};
-    badge = res.isError ? el('span', { class: 'badge err', text: 'Tool error (isError)' }) : el('span', { class: 'badge ok', text: 'Success' });
+    badge = res.isError ? el('span', { class: 'stat err', text: 'Tool error' }) : el('span', { class: 'stat ok', text: 'Success' });
     const blocks = res.content || [];
     blocks.forEach((b, i) => body.append(renderBlock(b, i)));
-    if (res.structuredContent !== undefined) body.append(el('div', { class: 'block' }, el('div', { class: 'bh', text: 'structuredContent' }), el('pre', { text: JSON.stringify(res.structuredContent, null, 2) })));
-    if (!blocks.length && res.structuredContent === undefined) body.append(el('p', { class: 'muted', text: 'Empty result.' }));
-    body.append(el('details', {}, el('summary', { class: 'muted', text: 'Raw response' }), el('pre', { text: JSON.stringify(res, null, 2) })));
+    if (res.structuredContent !== undefined) body.append(el('div', { class: 'block' }, el('div', { class: 'bh', text: 'structuredContent' }), jsonPre(res.structuredContent)));
+    if (!blocks.length && res.structuredContent === undefined) body.append(el('p', { class: 'muted', style: 'margin:0', text: 'Empty result.' }));
+    body.append(el('details', {}, el('summary', { text: 'Raw response' }), jsonPre(res)));
   }
   return el('div', { class: 'card' },
-    el('div', { class: 'card-h' }, el('h3', { text: 'Response' }), badge, el('span', { class: 'muted', text: `${r.elapsedMs ?? '?'} ms` }), el('span', { class: 'muted', style: 'margin-left:auto;font-size:12px', text: new Date().toLocaleTimeString() })),
+    el('div', { class: 'card-h' }, el('h3', { text: 'Response' }),
+      el('div', { class: 'status-line', style: 'margin-left:auto' }, el('span', { class: 'dot ' + (r.ok && !r.result?.isError ? 'on' : 'off') }), badge,
+        el('span', { class: 'meta', text: `${r.elapsedMs ?? '?'} ms` }), el('span', { class: 'meta', text: new Date().toLocaleTimeString() }))),
     body);
 }
 
 function renderBlock(b, i) {
-  const head = el('div', { class: 'bh' }, el('span', { text: `#${i + 1} ${b.type}` }));
+  const head = el('div', { class: 'bh' }, el('span', { text: `content[${i}] · ${b.type}` }));
   const wrap = el('div', { class: 'block' }, head);
   switch (b.type) {
     case 'text': {
       let text = b.text ?? '', pretty = null;
       try { const p = JSON.parse(text); if (typeof p === 'object' && p) pretty = JSON.stringify(p, null, 2); } catch { }
       if (pretty) head.append(el('span', { class: 'badge', text: 'json' }));
-      head.append(el('button', { class: 'btn small', text: 'Copy', onclick: e => copy(text, e.target) }));
-      wrap.append(el('pre', { text: pretty ?? text }));
+      const cb = el('button', { class: 'btn small ghost', onclick: () => copy(text, cb) }, icon('copy'), 'Copy');
+      head.append(cb);
+      wrap.append(pretty ? jsonPre(pretty) : el('pre', { text }));
       break;
     }
     case 'image': wrap.append(el('img', { src: `data:${b.mimeType};base64,${b.data}`, alt: 'image result' })); break;
@@ -501,13 +622,13 @@ function renderBlock(b, i) {
       wrap.append(el('div', { class: 'muted', text: `${r.uri || ''} ${r.mimeType || ''}` }), el('pre', { text: r.text ?? (r.blob ? `[${r.blob.length} base64 chars]` : JSON.stringify(r, null, 2)) }));
       break;
     }
-    default: wrap.append(el('pre', { text: JSON.stringify(b, null, 2) }));
+    default: wrap.append(jsonPre(b));
   }
   return wrap;
 }
 
 function copy(text, btn) {
-  navigator.clipboard?.writeText(text).then(() => { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = t, 1200); });
+  navigator.clipboard?.writeText(text).then(() => { const kids = [...btn.childNodes]; btn.replaceChildren('Copied'); setTimeout(() => btn.replaceChildren(...kids), 1200); });
 }
 
 // ---------- Headers dialog ----------
@@ -517,7 +638,7 @@ function renderHeaders() {
   if (defs().length) {
     box.append(el('div', { class: 'section-t', text: 'Defined by this project' }));
     for (const d of defs()) {
-      const input = el('input', { type: d.secret ? 'password' : 'text', placeholder: d.placeholder || '', value: defValue(d), spellcheck: 'false', autocomplete: 'off',
+      const input = el('input', { type: d.secret ? 'password' : 'text', placeholder: d.placeholder || '', value: defValue(d), spellcheck: 'false', autocomplete: 'off', 'data-def': d.name.toLowerCase(),
         oninput: e => { state.hdr.values[d.name] = e.target.value; saveHeaders(); } });
       const on = el('input', { type: 'checkbox', title: 'Send this header', onchange: e => { if (e.target.checked) delete state.hdr.disabled[d.name]; else state.hdr.disabled[d.name] = true; saveHeaders(); } });
       on.checked = !state.hdr.disabled[d.name];
@@ -526,25 +647,63 @@ function renderHeaders() {
           d.required ? el('span', { class: 'badge err', text: 'required' }) : null,
           d.secret ? el('span', { class: 'badge', text: 'secret' }) : null,
           serverHas(d.name) ? el('span', { class: 'badge ok', text: 'set by server' }) : null),
-        d.description ? el('div', { class: 'hint muted', style: 'font-size:12px;margin-bottom:4px', text: d.description }) : null,
+        d.description ? el('div', { class: 'muted', style: 'font-size:12px;margin-bottom:6px', text: d.description }) : null,
         el('div', { class: 'val' }, input,
-          d.secret ? el('button', { class: 'btn small', type: 'button', text: 'Show', onclick: e => { const show = input.type === 'password'; input.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; } }) : null,
-          d.defaultValue != null ? el('button', { class: 'btn small', type: 'button', text: 'Default', title: 'Restore default value', onclick: () => { delete state.hdr.values[d.name]; saveHeaders(); renderHeaders(); } }) : null)));
+          d.secret ? el('button', { class: 'btn', type: 'button', text: 'Show', onclick: e => { const show = input.type === 'password'; input.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; } }) : null,
+          d.defaultValue != null ? el('button', { class: 'btn', type: 'button', text: 'Default', title: 'Restore default value', onclick: () => { delete state.hdr.values[d.name]; saveHeaders(); renderHeaders(); } }) : null)));
     }
   }
   $('#hdrRows').replaceChildren(...state.hdr.custom.map((h, i) => {
     const on = el('input', { type: 'checkbox', title: 'Send this header', onchange: e => { h.enabled = e.target.checked; saveHeaders(); } });
     on.checked = h.enabled !== false;
     return el('div', { class: 'kv' }, on,
-      el('input', { type: 'text', placeholder: 'Name (e.g. X-Tenant-Id)', value: h.name || '', spellcheck: 'false', oninput: e => { h.name = e.target.value; saveHeaders(); } }),
-      el('input', { type: 'text', placeholder: 'Value', value: h.value || '', spellcheck: 'false', oninput: e => { h.value = e.target.value; saveHeaders(); } }),
-      el('button', { class: 'btn small', text: '✕', title: 'Remove', onclick: () => { state.hdr.custom.splice(i, 1); saveHeaders(); renderHeaders(); } }));
+      el('input', { type: 'text', placeholder: 'Header name', value: h.name || '', spellcheck: 'false', autocomplete: 'off', oninput: e => { h.name = e.target.value; saveHeaders(); } }),
+      el('input', { type: 'text', placeholder: 'Value', value: h.value || '', spellcheck: 'false', autocomplete: 'off', 'data-row': i, oninput: e => { h.value = e.target.value; saveHeaders(); } }),
+      el('button', { class: 'btn icon', title: 'Remove header', 'aria-label': 'Remove header', onclick: () => { state.hdr.custom.splice(i, 1); saveHeaders(); renderHeaders(); } }, icon('x')));
   }));
-  if (!state.hdr.custom.length) $('#hdrRows').append(el('p', { class: 'muted', style: 'margin:0 0 6px', text: 'Add any other header the server needs.' }));
+  // Presets for headers the project already defines are hidden, except auth schemes that pre-fill a prefix.
+  const defined = new Set(defs().map(d => d.name.toLowerCase()));
+  const presets = HEADER_PRESETS.filter(p => !defined.has(p.name.toLowerCase()) || p.hint);
+  $('#hdrPresets').replaceChildren(el('span', { class: 'lead', text: 'Quick add:' }), ...presets.map(p => el('button', { class: 'preset', type: 'button', title: `Add ${p.name}${p.value ? ': ' + p.value : ''}`, onclick: () => applyPreset(p) },
+    icon('plus'), p.name, p.hint ? el('span', { class: 'ex', text: p.hint }) : null)));
   const srv = state.config?.serverHeaders || [];
   $('#hdrServer').replaceChildren(...(srv.length ? [el('p', { class: 'muted', style: 'font-size:12px', text: 'Also added on the server (values hidden): ' + srv.join(', ') })] : []));
 }
+// Quick-add suggestions. Clicking one adds the header (or fills a project-defined one) and focuses the value,
+// so the user only has to paste the token. Name and value stay fully editable afterwards.
+const HEADER_PRESETS = [
+  { name: 'Authorization', value: 'Bearer ', hint: 'Bearer' },
+  { name: 'Authorization', value: 'Basic ', hint: 'Basic' },
+  { name: 'X-API-Key', value: '' },
+  { name: 'X-Refresh-Token', value: '' },
+  { name: 'X-Tenant-Id', value: '' },
+  { name: 'Accept-Language', value: navigator.language || 'en-US' },
+  { name: 'X-Correlation-Id', value: () => crypto.randomUUID?.() || Date.now().toString(36) },
+];
+function applyPreset(p) {
+  const value = typeof p.value === 'function' ? p.value() : p.value;
+  const key = p.name.toLowerCase();
+  const def = defs().find(d => d.name.toLowerCase() === key);
+  let sel;
+  if (def) {
+    delete state.hdr.disabled[def.name];
+    if (!defValue(def).trim() || /^(bearer|basic)\s*$/i.test(defValue(def))) state.hdr.values[def.name] = value;
+    sel = `[data-def="${CSS.escape(key)}"]`;
+  } else {
+    let i = state.hdr.custom.findIndex(c => (c.name || '').trim().toLowerCase() === key);
+    if (i < 0) { state.hdr.custom.push({ name: p.name, value, enabled: true }); i = state.hdr.custom.length - 1; }
+    else {
+      const c = state.hdr.custom[i]; c.enabled = true;
+      if (!(c.value || '').trim() || /^(bearer|basic)\s*$/i.test(c.value)) c.value = value;
+    }
+    sel = `[data-row="${i}"]`;
+  }
+  saveHeaders(); renderHeaders();
+  const input = $('#headersDlg ' + sel);
+  if (input) { input.focus(); const n = input.value.length; try { input.setSelectionRange(n, n); } catch { } }
+}
 function openHeaders() { renderHeaders(); $('#headersDlg').showModal(); }
+$('#hdrCancel').onclick = () => $('#headersDlg').close();
 $('#headersBtn').onclick = openHeaders;
 $('#hdrClose').onclick = () => { $('#headersDlg').close(); connect(); };
 $('#addHdr').onclick = () => { state.hdr.custom.push({ name: '', value: '', enabled: true }); renderHeaders(); };
@@ -553,7 +712,7 @@ $('#addHdr').onclick = () => { state.hdr.custom.push({ name: '', value: '', enab
 $('#search').oninput = renderList;
 $('#connectBtn').onclick = connect;
 $('#endpoint').onkeydown = e => { if (e.key === 'Enter') connect(); };
-$('.logo').style.cursor = 'pointer'; $('.logo').onclick = () => { history.replaceState(null, '', location.pathname); renderOverview(); };
+$('#brand').onclick = () => { history.replaceState(null, '', location.pathname); renderOverview(); };
 
 (async () => {
   state.config = await api('config');
