@@ -1,13 +1,16 @@
 name: Publish to NuGet
 
 # Push a tag like v0.2.0 to publish that version to nuget.org.
-# Requires the repository secret NUGET_API_KEY (nuget.org > API Keys, scope "Push").
+# Uses nuget.org Trusted Publishing (no long-lived API key): a policy on nuget.org must allow
+# repository devvolkankocak/McpExplorer.AspNetCore + workflow publish.yml for the nuget.org
+# user below (policy "McpExplorer GitHub Actions", owner developervolkan).
 on:
   push:
     tags: ['v*']
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   publish:
@@ -21,8 +24,13 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           dotnet pack src/McpExplorer.AspNetCore -c Release -o artifacts -p:Version="$VERSION"
+      - name: NuGet login (Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: developervolkan
       - name: Push to nuget.org
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

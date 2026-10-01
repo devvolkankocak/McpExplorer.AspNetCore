@@ -157,7 +157,8 @@ Ya da yayınlanmamış bir sürümü yerel `.nupkg` ile:
 ## Yayınlama
 
 `vX.Y.Z` etiketi push edilince `.github/workflows/publish.yml` paketi o sürümle nuget.org'a gönderir ve
-`.nupkg` dosyasını GitHub Release'e ekler. Repo ayarlarında `NUGET_API_KEY` secret'ı tanımlı olmalı.
+`.nupkg` dosyasını GitHub Release'e ekler. nuget.org Trusted Publishing kullanılır (API key gerekmez):
+nuget.org'da `developervolkan` hesabında bu repo ve `publish.yml` için bir policy tanımlıdır.
 
 NuGet paketini yeniden üretmek için: `dotnet pack src/McpExplorer.AspNetCore -c Release -o packages`
 
