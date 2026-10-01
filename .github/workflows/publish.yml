@@ -1,12 +1,13 @@
 name: Publish to NuGet
 
-# Push a tag like v0.2.0 to publish that version to nuget.org.
+# Push a tag like v0.2.0, or a branch like release/v0.2.0, to publish that version to nuget.org.
 # Uses nuget.org Trusted Publishing (no long-lived API key): a policy on nuget.org must allow
 # repository devvolkankocak/McpExplorer.AspNetCore + workflow publish.yml for the nuget.org
 # user below (policy "McpExplorer GitHub Actions", owner developervolkan).
 on:
   push:
     tags: ['v*']
+    branches: ['release/v*']
 
 permissions:
   contents: write
@@ -20,9 +21,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Version
+        run: |
+          TAG="${GITHUB_REF_NAME#release/}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
       - name: Pack
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           dotnet pack src/McpExplorer.AspNetCore -c Release -o artifacts -p:Version="$VERSION"
       - name: NuGet login (Trusted Publishing)
         id: login
@@ -34,4 +39,4 @@ jobs:
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$TAG" artifacts/*.nupkg --title "$TAG" --target "$GITHUB_SHA" --generate-notes
