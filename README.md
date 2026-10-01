@@ -112,7 +112,7 @@ nuget.config                  nuget.org + packages/ kaynakları
 
 ## Lokalde çalıştırma
 
-Gereken: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (`dotnet --version` 10.x göstermeli).
+Gereken: örnekleri bu repodan derlemek için [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). `SampleMcpServer` .NET 8 ve 9'da da çalışır: `dotnet run -f net8.0`.
 
 ```bash
 cd McpExplorer/samples/ExampleBackendApi
@@ -131,6 +131,8 @@ Ardından tarayıcıda:
 Visual Studio / Rider ile: `McpExplorer.slnx`'i aç, `ExampleBackendApi`'yi startup project yap, F5.
 
 ## Kendi projene ekleme
+
+Desteklenen hedefler: **.NET 8, .NET 9, .NET 10** (paket üçünü de içerir, NuGet doğru olanı seçer).
 
 nuget.org'dan:
 
