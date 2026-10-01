@@ -63,6 +63,7 @@ app.MapMcpExplorer("/mcp-explorer", o =>
 ```
 
 - Tanımlı header'ların yanında, kullanıcı panelden istediği **ek header'ı** da elle ekleyebilir.
+- **Hızlı ekleme** butonları sık kullanılan header'ları tek tıkla ekler: `Authorization: Bearer …`, `Basic`, `X-API-Key`, `X-Refresh-Token`, `X-Tenant-Id`, `Accept-Language`, `X-Correlation-Id`. Değer alanı odaklanır, sadece token'ı yapıştırırsın; adı ve değeri sonradan tamamen değiştirilebilir.
 - Her header tek tıkla açılıp kapatılabilir; değerler tarayıcıda (localStorage) saklanır.
 - Header'lar hem `tools/list` hem `tools/call` isteğine eklenir.
 - Öncelik sırası (düşükten yükseğe): `ForwardedHeaders` (tarayıcı isteğinden) → UI'da girilen değerler → `AdditionalHeaders`.
