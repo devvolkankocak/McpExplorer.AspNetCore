@@ -133,6 +133,7 @@ Visual Studio / Rider ile: `McpExplorer.slnx`'i aç, `ExampleBackendApi`'yi star
 ## Kendi projene ekleme
 
 Desteklenen hedefler: **.NET 8, .NET 9, .NET 10** (paket üçünü de içerir, NuGet doğru olanı seçer).
+ModelContextProtocol SDK: **1.0.0 ve üzeri** (1.x ve 2.x). Projendeki sürüm neyse o kullanılır, paket seni yükseltmeye zorlamaz.
 
 nuget.org'dan:
 
