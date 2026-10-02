@@ -26,6 +26,7 @@ public static class McpExplorerEndpointRouteBuilderExtensions
     {
         var options = new McpExplorerOptions();
         configure?.Invoke(options);
+        var servers = BuildServers(options);
 
         var prefix = "/" + pattern.Trim('/');
         var group = endpoints.MapGroup(prefix).ExcludeFromDescription();
@@ -43,18 +44,25 @@ public static class McpExplorerEndpointRouteBuilderExtensions
         group.MapGet("/api/config", () => Results.Json(new
         {
             title = options.Title,
-            endpoint = options.McpEndpoint,
             allowCustomEndpoint = options.AllowCustomEndpoint,
-            headers = options.Headers.Select(h => new
+            servers = servers.Select(s => new
             {
-                name = h.Name,
-                description = h.Description,
-                required = h.Required,
-                secret = h.Secret,
-                placeholder = h.Placeholder,
-                defaultValue = h.DefaultValue,
+                id = s.Id,
+                title = s.Title,
+                endpoint = s.Endpoint,
+                local = s.IsLocal,
+                headers = s.Headers.Select(h => new
+                {
+                    name = h.Name,
+                    description = h.Description,
+                    required = h.Required,
+                    secret = h.Secret,
+                    placeholder = h.Placeholder,
+                    defaultValue = h.DefaultValue,
+                }),
+                // Names only: values stay on the server.
+                serverHeaders = s.AdditionalHeaders.Keys,
             }),
-            serverHeaders = options.AdditionalHeaders.Keys,
         }));
 
         group.MapPost("/api/connect", async (ConnectRequest body, HttpContext ctx, ILoggerFactory loggerFactory) =>
@@ -63,7 +71,8 @@ public static class McpExplorerEndpointRouteBuilderExtensions
             try
             {
                 using var cts = CreateTimeout(ctx, options);
-                await using var client = await CreateClientAsync(body.Endpoint, ctx, options, loggerFactory, cts.Token);
+                var server = ResolveServer(body.ServerId, body.Endpoint, servers, options);
+                await using var client = await CreateClientAsync(server, ctx, loggerFactory, cts.Token);
 
                 var tools = new List<Tool>();
                 string? cursor = null;
@@ -77,7 +86,8 @@ public static class McpExplorerEndpointRouteBuilderExtensions
                 return Json(new
                 {
                     ok = true,
-                    endpoint = ResolveEndpoint(body.Endpoint, ctx, options).ToString(),
+                    serverId = server.Id,
+                    endpoint = ResolveEndpoint(server.Endpoint, ctx).ToString(),
                     server = client.ServerInfo,
                     protocolVersion = client.NegotiatedProtocolVersion,
                     capabilities = client.ServerCapabilities,
@@ -101,7 +111,8 @@ public static class McpExplorerEndpointRouteBuilderExtensions
                     return Results.BadRequest(new { ok = false, error = "Tool name is required." });
 
                 using var cts = CreateTimeout(ctx, options);
-                await using var client = await CreateClientAsync(body.Endpoint, ctx, options, loggerFactory, cts.Token);
+                var server = ResolveServer(body.ServerId, body.Endpoint, servers, options);
+                await using var client = await CreateClientAsync(server, ctx, loggerFactory, cts.Token);
 
                 var result = await client.CallToolAsync(new CallToolRequestParams
                 {
@@ -120,13 +131,51 @@ public static class McpExplorerEndpointRouteBuilderExtensions
         return group;
     }
 
+    // Without AddServer calls, the top-level options describe a single "default" server (pre-0.5 behaviour).
+    private static IReadOnlyList<McpExplorerServer> BuildServers(McpExplorerOptions options)
+    {
+        if (options.Servers.Count > 0) return options.Servers.ToList();
+
+        var server = new McpExplorerServer("default") { Endpoint = options.McpEndpoint };
+        foreach (var h in options.Headers) server.Headers.Add(h);
+        foreach (var name in options.ForwardedHeaders) server.ForwardedHeaders.Add(name);
+        foreach (var (key, value) in options.AdditionalHeaders) server.AdditionalHeaders[key] = value;
+        return new[] { server };
+    }
+
+    // The proxy only talks to registered servers; an arbitrary URL from the browser is accepted only
+    // when AllowCustomEndpoint is on (it would otherwise let anyone use this app as an open proxy).
+    private static McpExplorerServer ResolveServer(
+        string? serverId, string? endpoint, IReadOnlyList<McpExplorerServer> servers, McpExplorerOptions options)
+    {
+        if (!string.IsNullOrWhiteSpace(serverId))
+        {
+            var match = servers.FirstOrDefault(s => string.Equals(s.Id, serverId, StringComparison.OrdinalIgnoreCase));
+            if (match is not null) return match;
+            if (string.IsNullOrWhiteSpace(endpoint))
+                throw new McpExplorerConfigurationException($"Unknown MCP server '{serverId}'.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(endpoint))
+        {
+            if (!options.AllowCustomEndpoint)
+                throw new McpExplorerConfigurationException("Custom MCP endpoints are disabled. Set AllowCustomEndpoint = true to enable them.");
+            var custom = new McpExplorerServer("custom") { Endpoint = endpoint.Trim() };
+            if (custom.IsLocal && !custom.Endpoint.StartsWith('/'))
+                throw new McpExplorerConfigurationException("Endpoint must be an http(s) URL or a path starting with '/'.");
+            return custom;
+        }
+
+        return servers[0];
+    }
+
     private static async Task<McpClient> CreateClientAsync(
-        string? endpoint, HttpContext ctx, McpExplorerOptions options, ILoggerFactory loggerFactory, CancellationToken ct)
+        McpExplorerServer server, HttpContext ctx, ILoggerFactory loggerFactory, CancellationToken ct)
     {
         // Precedence (lowest to highest): forwarded browser headers, headers typed in the UI, server-side AdditionalHeaders.
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var name in options.ForwardedHeaders)
+        foreach (var name in server.EffectiveForwardedHeaders)
         {
             if (ctx.Request.Headers.TryGetValue(name, out var value) && !string.IsNullOrEmpty(value))
                 headers[name] = value.ToString();
@@ -140,32 +189,31 @@ public static class McpExplorerEndpointRouteBuilderExtensions
                 headers[key[HeaderPrefix.Length..]] = value.ToString();
         }
 
-        foreach (var (key, value) in options.AdditionalHeaders)
+        foreach (var (key, value) in server.AdditionalHeaders)
             headers[key] = value;
 
-        var missing = options.Headers.Where(h => h.Required && !headers.ContainsKey(h.Name)).Select(h => h.Name).ToList();
+        var missing = server.Headers.Where(h => h.Required && !headers.ContainsKey(h.Name)).Select(h => h.Name).ToList();
         if (missing.Count > 0)
             throw new McpExplorerConfigurationException($"Required header(s) missing: {string.Join(", ", missing)}. Set them in the Headers panel.");
 
         var transport = new HttpClientTransport(new HttpClientTransportOptions
         {
-            Endpoint = ResolveEndpoint(endpoint, ctx, options),
+            Endpoint = ResolveEndpoint(server.Endpoint, ctx),
             Name = "McpExplorer",
             AdditionalHeaders = headers,
         }, loggerFactory);
 
         return await McpClient.CreateAsync(transport, new McpClientOptions
         {
-            ClientInfo = new Implementation { Name = "McpExplorer", Version = "0.2.0" },
+            ClientInfo = new Implementation { Name = "McpExplorer", Version = ClientVersion },
         }, loggerFactory, ct);
     }
 
-    private static Uri ResolveEndpoint(string? requested, HttpContext ctx, McpExplorerOptions options)
-    {
-        var endpoint = options.AllowCustomEndpoint && !string.IsNullOrWhiteSpace(requested)
-            ? requested.Trim()
-            : options.McpEndpoint;
+    private static readonly string ClientVersion =
+        typeof(McpExplorerOptions).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 
+    private static Uri ResolveEndpoint(string endpoint, HttpContext ctx)
+    {
         if (Uri.TryCreate(endpoint, UriKind.Absolute, out var absolute) &&
             (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps))
             return absolute;
@@ -201,9 +249,10 @@ public static class McpExplorerEndpointRouteBuilderExtensions
 
     private sealed class McpExplorerConfigurationException(string message) : Exception(message);
 
-    private sealed record ConnectRequest(string? Endpoint);
+    private sealed record ConnectRequest(string? ServerId, string? Endpoint);
 
     private sealed record CallRequest(
+        string? ServerId,
         string? Endpoint,
         string Tool,
         [property: JsonPropertyName("arguments")] Dictionary<string, JsonElement>? Arguments);
