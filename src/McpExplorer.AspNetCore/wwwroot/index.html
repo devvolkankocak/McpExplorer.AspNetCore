@@ -45,9 +45,26 @@ header{display:flex;align-items:center;gap:16px;height:52px;padding:0 16px;backg
 .dot{width:7px;height:7px;border-radius:50%;background:var(--border-strong);flex:none}
 .dot.on{background:var(--ok)}.dot.off{background:var(--err)}
 .endpoint{display:flex;align-items:stretch;flex:1;min-width:240px;max-width:620px;margin-left:auto;height:32px}
-.endpoint .scheme{display:flex;align-items:center;padding:0 10px;border:1px solid var(--border);border-right:none;border-radius:var(--radius) 0 0 var(--radius);background:var(--sunken);color:var(--muted);font:500 11px/1 var(--mono);letter-spacing:.04em}
-.endpoint input{flex:1;min-width:0;border-radius:0 var(--radius) var(--radius) 0!important;font-family:var(--mono)!important;font-size:12.5px!important;height:32px}
 .endpoint .btn{margin-left:8px;height:32px}
+.picker{position:relative;flex:1;min-width:0}
+.picker-btn{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);cursor:pointer;text-align:left}
+.picker-btn:hover{border-color:var(--border-strong)}
+.picker-btn.static{cursor:default}.picker-btn.static:hover{border-color:var(--border)}
+.picker-btn .pk-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.picker-btn .pk-url{font:12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.picker-btn svg{color:var(--muted)}
+.picker-menu{position:absolute;top:38px;left:0;min-width:100%;width:max-content;max-width:min(440px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.14);padding:6px;z-index:20}
+.pk-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 8px;border-radius:5px;cursor:pointer}
+.pk-item:hover{background:var(--hover)}
+.pk-item.active{background:var(--sunken);box-shadow:0 0 0 1px var(--border)}
+.pk-item .t{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-item .u{font:11.5px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-item .st{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.pk-item .st.err{color:var(--err)}.pk-item .st.warn{color:var(--warn)}
+.pk-sep{height:1px;background:var(--border);margin:6px 2px}
+.pk-add{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:none;background:none;border-radius:5px;cursor:pointer;color:var(--text-2);font-size:13px}
+.pk-add:hover{background:var(--hover);color:var(--text)}
+.dot.need{background:var(--warn)}
 
 /* controls */
 input[type=text],input[type=number],input[type=url],input[type=email],input[type=date],input[type=datetime-local],input[type=password],select,textarea{
@@ -169,7 +186,9 @@ dialog::backdrop{background:rgba(9,9,11,.45)}
 .instructions{white-space:pre-wrap;color:var(--text-2);font-size:13px;margin:0 0 14px}
 @media (max-width:760px){
   header{height:auto;flex-wrap:wrap;padding:10px 16px;gap:10px}
-  .sep,#serverMeta{display:none}
+  .sep,.server-meta{display:none}
+  .picker-btn .pk-url{display:none}
+  .picker-btn .pk-name{max-width:none;flex:1}
   .endpoint{max-width:none;margin-left:0;flex-basis:100%}
   .layout{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
   .tabs .tab{padding:0 8px}
@@ -183,10 +202,12 @@ dialog::backdrop{background:rgba(9,9,11,.45)}
 <header>
   <div class="brand" id="brand" title="Server overview"><span class="mark">M</span><span class="name" id="title">{{TITLE}}</span></div>
   <span class="sep"></span>
-  <div class="server-meta"><span class="dot" id="dot"></span><span id="serverMeta">Not connected</span></div>
+  <div class="server-meta"><span id="serverMeta">Not connected</span></div>
   <div class="endpoint">
-    <span class="scheme">MCP</span>
-    <input type="text" id="endpoint" spellcheck="false" aria-label="MCP endpoint">
+    <div class="picker">
+      <button class="picker-btn" id="pickerBtn" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dot" id="dot"></span><span class="pk-name" id="pickName">…</span><span class="pk-url" id="pickUrl"></span><svg class="i" id="pickChev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="picker-menu" id="pickerMenu" role="listbox" hidden></div>
+    </div>
     <button class="btn" id="headersBtn" title="Request headers">Headers <span class="count-pill" id="hdrCount"></span></button>
     <button class="btn primary" id="connectBtn">Connect</button>
   </div>
@@ -215,6 +236,21 @@ dialog::backdrop{background:rgba(9,9,11,.45)}
     <button class="btn" id="hdrCancel">Close</button>
     <button class="btn primary" id="hdrClose">Save and reconnect</button>
   </div>
+</dialog>
+
+<dialog id="addSrvDlg">
+  <form method="dialog" id="addSrvForm">
+    <div class="dlg-h"><h3>Add MCP server</h3><p>A temporary server, saved in this browser only. Requests go through this app.</p></div>
+    <div class="dlg-b">
+      <div class="field" style="margin-top:14px"><label for="srvName">Name</label><input type="text" id="srvName" placeholder="Payments staging" autocomplete="off"></div>
+      <div class="field"><label for="srvUrl">MCP endpoint</label><input type="text" id="srvUrl" placeholder="https://example.com/mcp" spellcheck="false" autocomplete="off" required></div>
+      <div class="error-box" id="srvErr" hidden></div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn" type="button" id="srvCancel">Cancel</button>
+      <button class="btn primary" type="submit" id="srvAdd">Add and connect</button>
+    </div>
+  </form>
 </dialog>
 
 <script>
@@ -263,26 +299,39 @@ const store = {
   set(k, v) { try { localStorage.setItem('mcpexplorer:' + k, JSON.stringify(v)); } catch {} }
 };
 
-const state = { config: null, tools: [], selected: null, drafts: {}, hdr: loadHeaders() };
+const state = { config: null, serverId: null, tools: [], selected: null, drafts: {}, hdrs: {}, status: {}, custom: (store.get('customServers', []) || []).filter(c => c && c.id && c.endpoint).map(c => ({ ...c, custom: true, headers: [], serverHeaders: [] })) };
+
+// ---------- Servers ----------
+// Configured servers come from api/config; temporary ones (AllowCustomEndpoint) live in localStorage.
+const servers = () => [...(state.config?.servers || []), ...(state.config?.allowCustomEndpoint ? state.custom : [])];
+const server = (id = state.serverId) => servers().find(s => s.id === id) || servers()[0];
+const multi = () => servers().length > 1 || !!state.config?.allowCustomEndpoint;
+const serverName = s => s.title || state.status[s.id]?.name || s.id;
+// What api/connect and api/call need to reach a server: its id, or the URL for a temporary one.
+const target = s => s.custom ? { endpoint: s.endpoint } : { serverId: s.id };
 
 // ---------- Headers model ----------
-// hdr = { values: {name: value}, disabled: {name: true}, custom: [{name, value, enabled}] }
-function loadHeaders() {
-  const h = store.get('headers', null);
-  if (Array.isArray(h)) return { values: {}, disabled: {}, custom: h.map(x => ({ enabled: true, ...x })) }; // v0.1 format
-  return { values: {}, disabled: {}, custom: [], ...(h || {}) };
+// Per server: hdr = { values: {name: value}, disabled: {name: true}, custom: [{name, value, enabled}] }
+function hdrFor(id) {
+  if (state.hdrs[id]) return state.hdrs[id];
+  let h = store.get('headers:' + id, null);
+  // Headers saved before 0.5 (one server only) belong to the first configured server.
+  if (h == null && id === state.config?.servers?.[0]?.id) h = store.get('headers', null);
+  if (Array.isArray(h)) h = { custom: h.map(x => ({ enabled: true, ...x })) }; // v0.1 format
+  return state.hdrs[id] = { values: {}, disabled: {}, custom: [], ...(h || {}) };
 }
-const saveHeaders = () => { store.set('headers', state.hdr); updateHeaderBtn(); };
-const defs = () => state.config?.headers || [];
-const defValue = d => state.hdr.values[d.name] ?? d.defaultValue ?? '';
-function activeHeaders() {
-  const out = {};
-  for (const d of defs()) { const v = defValue(d); if (v && !state.hdr.disabled[d.name]) out[d.name] = v; }
-  for (const c of state.hdr.custom) if (c.name?.trim() && c.enabled !== false) out[c.name.trim()] = c.value ?? '';
+Object.defineProperty(state, 'hdr', { get: () => hdrFor(server().id) });
+const saveHeaders = () => { store.set('headers:' + server().id, state.hdr); updateHeaderBtn(); };
+const defs = (s = server()) => s?.headers || [];
+const defValue = (d, h = state.hdr) => h.values[d.name] ?? d.defaultValue ?? '';
+function activeHeaders(s = server()) {
+  const h = hdrFor(s.id), out = {};
+  for (const d of defs(s)) { const v = defValue(d, h); if (v && !h.disabled[d.name]) out[d.name] = v; }
+  for (const c of h.custom) if (c.name?.trim() && c.enabled !== false) out[c.name.trim()] = c.value ?? '';
   return out;
 }
-const serverHas = name => (state.config?.serverHeaders || []).some(n => n.toLowerCase() === name.toLowerCase());
-const missingRequired = () => defs().filter(d => d.required && !serverHas(d.name) && !(defValue(d) && !state.hdr.disabled[d.name])).map(d => d.name);
+const serverHas = (name, s = server()) => (s?.serverHeaders || []).some(n => n.toLowerCase() === name.toLowerCase());
+const missingRequired = (s = server()) => { const h = hdrFor(s.id); return defs(s).filter(d => d.required && !serverHas(d.name, s) && !(defValue(d, h) && !h.disabled[d.name])).map(d => d.name); };
 function updateHeaderBtn() {
   const n = Object.keys(activeHeaders()).length, miss = missingRequired();
   $('#hdrCount').textContent = n ? String(n) : '';
@@ -291,20 +340,34 @@ function updateHeaderBtn() {
 }
 
 // ---------- API ----------
-async function api(path, body) {
+async function api(path, body, s) {
   const headers = { 'Content-Type': 'application/json' };
-  for (const [k, v] of Object.entries(activeHeaders())) headers['X-McpExplorer-Header-' + k] = v;
+  if (s) for (const [k, v] of Object.entries(activeHeaders(s))) headers['X-McpExplorer-Header-' + k] = v;
   const res = await fetch('api/' + path, { method: body ? 'POST' : 'GET', headers, body: body ? JSON.stringify(body) : undefined });
   let data; try { data = await res.json(); } catch { data = { ok: false, error: 'HTTP ' + res.status }; }
   return data;
 }
 
 // ---------- Connect ----------
+// One request per server: initialize + tools/list. Used for the selected server and for the status dots.
+async function probe(s) {
+  const miss = missingRequired(s);
+  if (miss.length) return state.status[s.id] = { state: 'need', missing: miss };
+  state.status[s.id] = { ...state.status[s.id], state: 'loading' }; renderPicker();
+  const r = await api('connect', target(s), s);
+  state.status[s.id] = r.ok
+    ? { state: 'ok', tools: (r.tools || []).length, name: r.server?.title || r.server?.name, result: r }
+    : { state: 'err', error: r.error || 'Unknown error' };
+  renderPicker();
+  return state.status[s.id];
+}
+
 async function connect() {
-  const btn = $('#connectBtn');
-  const miss = missingRequired();
+  const btn = $('#connectBtn'), s = server();
+  const miss = missingRequired(s);
   if (miss.length) {
-    $('#dot').className = 'dot off';
+    state.status[s.id] = { state: 'need', missing: miss }; renderPicker();
+    state.tools = []; state.selected = null; renderList();
     $('#serverMeta').textContent = 'Headers required';
     $('#main').replaceChildren(page(el('div', { class: 'card' },
       el('div', { class: 'card-h' }, el('h3', { text: 'Headers required' })),
@@ -314,12 +377,11 @@ async function connect() {
   }
   btn.disabled = true; btn.replaceChildren(el('span', { class: 'spin' }));
   $('#serverMeta').textContent = 'Connecting…';
-  const endpoint = $('#endpoint').value;
-  if (state.config.allowCustomEndpoint) store.set('endpoint', endpoint);
-  const r = await api('connect', { endpoint });
+  const st = await probe(s);
+  if (s.id !== server().id) return; // the user switched servers meanwhile
+  const r = st.result || { ok: false, error: st.error };
   btn.disabled = false; btn.textContent = 'Reconnect';
   if (!r.ok) {
-    $('#dot').className = 'dot off';
     $('#serverMeta').textContent = 'Connection failed';
     state.tools = []; renderList();
     $('#main').replaceChildren(page(el('div', { class: 'card' },
@@ -327,16 +389,86 @@ async function connect() {
       el('div', { class: 'card-b' }, el('div', { class: 'error-box', text: r.error || 'Unknown error' })))));
     return;
   }
-  $('#dot').className = 'dot on';
-  const s = r.server || {};
-  $('#serverMeta').textContent = `${s.title || s.name || 'MCP server'}${s.version ? ' ' + s.version : ''} · ${r.protocolVersion || '?'} · ${r.elapsedMs} ms`;
+  const info = r.server || {};
+  $('#serverMeta').textContent = `${info.title || info.name || 'MCP server'}${info.version ? ' ' + info.version : ''} · ${r.protocolVersion || '?'} · ${r.elapsedMs} ms`;
   state.server = r;
   state.tools = (r.tools || []).slice().sort((a, b) => a.name.localeCompare(b.name));
   renderList();
-  const fromHash = decodeURIComponent(location.hash.slice(1));
+  const fromHash = parseHash().tool;
   const pick = state.tools.find(t => t.name === fromHash) || state.tools.find(t => t.name === state.selected?.name);
   if (pick) select(pick); else renderOverview();
 }
+
+// ---------- Server picker ----------
+// URL: #<server>/<tool> when several servers exist, #<tool> otherwise (links from 0.4 keep working).
+function parseHash() {
+  const h = decodeURIComponent(location.hash.slice(1)), i = h.indexOf('/');
+  if (i > 0 && servers().some(s => s.id === h.slice(0, i))) return { server: h.slice(0, i), tool: h.slice(i + 1) };
+  if (servers().some(s => s.id === h)) return { server: h, tool: '' };
+  return { server: null, tool: h };
+}
+const setHash = tool => history.replaceState(null, '', '#' + (multi() ? encodeURIComponent(server().id) + (tool ? '/' : '') : '') + (tool ? encodeURIComponent(tool) : ''));
+
+const statusText = st => !st ? ['', ''] : st.state === 'ok' ? [`${st.tools} tool${st.tools === 1 ? '' : 's'}`, '']
+  : st.state === 'need' ? ['Headers required', 'warn'] : st.state === 'err' ? ['Unreachable', 'err'] : ['Connecting…', ''];
+const dotClass = st => 'dot' + (!st ? '' : st.state === 'ok' ? ' on' : st.state === 'err' ? ' off' : st.state === 'need' ? ' need' : '');
+
+function renderPicker() {
+  const s = server(); if (!s) return;
+  $('#dot').className = dotClass(state.status[s.id]);
+  $('#pickName').textContent = serverName(s);
+  $('#pickUrl').textContent = s.endpoint;
+  $('#pickerBtn').title = `${serverName(s)} · ${s.endpoint}`;
+  $('#pickerBtn').classList.toggle('static', !multi());
+  $('#pickChev').style.display = multi() ? '' : 'none';
+  const menu = $('#pickerMenu');
+  if (menu.hidden) return;
+  menu.replaceChildren(...servers().map(x => {
+    const st = state.status[x.id], [txt, cls] = statusText(st);
+    return el('div', { class: 'pk-item' + (x.id === s.id ? ' active' : ''), role: 'option', 'aria-selected': x.id === s.id ? 'true' : 'false', title: st?.error || '', onclick: () => { closePicker(); switchServer(x.id); } },
+      el('span', { class: dotClass(st) }),
+      el('div', { style: 'min-width:0' }, el('div', { class: 't', text: serverName(x) }), el('div', { class: 'u', text: x.endpoint })),
+      el('span', { class: 'st' + (cls ? ' ' + cls : ''), text: txt }),
+      x.custom ? el('button', { class: 'btn small icon ghost', title: 'Remove server', 'aria-label': 'Remove server', onclick: e => { e.stopPropagation(); removeCustom(x.id); } }, icon('x')) : el('span'));
+  }), ...(state.config.allowCustomEndpoint ? [el('div', { class: 'pk-sep' }), el('button', { class: 'pk-add', type: 'button', onclick: () => { closePicker(); openAddServer(); } }, icon('plus'), 'Add server')] : []));
+}
+function openPicker() { if (!multi()) return; $('#pickerMenu').hidden = false; $('#pickerBtn').setAttribute('aria-expanded', 'true'); renderPicker(); }
+function closePicker() { $('#pickerMenu').hidden = true; $('#pickerBtn').setAttribute('aria-expanded', 'false'); }
+$('#pickerBtn').onclick = () => $('#pickerMenu').hidden ? openPicker() : closePicker();
+document.addEventListener('click', e => { if (!e.target.closest('.picker')) closePicker(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
+
+function switchServer(id) {
+  if (id === server().id && state.tools.length) return;
+  state.serverId = id; store.set('server', id);
+  state.selected = null; state.tools = []; state.server = null;
+  setHash('');
+  $('#search').value = '';
+  renderList(); renderPicker(); updateHeaderBtn();
+  $('#main').replaceChildren(el('div', { class: 'empty', text: 'Connecting…' }));
+  connect();
+}
+
+function saveCustom() { store.set('customServers', state.custom.map(({ id, title, endpoint }) => ({ id, title, endpoint }))); }
+function removeCustom(id) {
+  state.custom = state.custom.filter(c => c.id !== id); saveCustom();
+  try { localStorage.removeItem('mcpexplorer:headers:' + id); } catch { }
+  if (state.serverId === id) switchServer(servers()[0].id); else renderPicker();
+}
+function openAddServer() {
+  $('#srvName').value = ''; $('#srvUrl').value = ''; $('#srvErr').hidden = true;
+  $('#addSrvDlg').showModal(); $('#srvUrl').focus();
+}
+$('#srvCancel').onclick = () => $('#addSrvDlg').close();
+$('#addSrvForm').onsubmit = e => {
+  e.preventDefault();
+  const endpoint = $('#srvUrl').value.trim();
+  if (!/^https?:\/\/\S+$/i.test(endpoint) && !/^\/\S*$/.test(endpoint)) { $('#srvErr').hidden = false; $('#srvErr').textContent = 'Enter an http(s) URL or a path such as /mcp.'; return; }
+  const c = { id: 'custom-' + Date.now().toString(36), title: $('#srvName').value.trim() || null, endpoint, custom: true, headers: [], serverHeaders: [] };
+  state.custom.push(c); saveCustom();
+  $('#addSrvDlg').close();
+  switchServer(c.id);
+};
 
 function renderOverview() {
   state.selected = null; renderList();
@@ -350,6 +482,7 @@ function renderOverview() {
       el('div', { class: 'card-h' }, el('h3', { text: 'Connection' })),
       el('div', { class: 'card-b' },
         el('dl', { class: 'kv-table' },
+          multi() ? [el('dt', { text: 'Server id' }), el('dd', { text: server().custom ? 'temporary (this browser)' : server().id })] : null,
           el('dt', { text: 'Endpoint' }), el('dd', { text: r.endpoint }),
           el('dt', { text: 'Server' }), el('dd', { text: `${s.name || '?'}${s.version ? ' ' + s.version : ''}` }),
           el('dt', { text: 'Protocol' }), el('dd', { text: r.protocolVersion || '?' }),
@@ -500,14 +633,15 @@ function buildObject(schema) {
 // ---------- Tool view ----------
 function select(tool) {
   state.selected = tool; renderList();
-  history.replaceState(null, '', '#' + encodeURIComponent(tool.name));
+  setHash(tool.name);
+  const draftKey = server().id + '/' + tool.name;
   const schema = tool.inputSchema || { type: 'object', properties: {} };
   const hasProps = Object.keys(schema.properties || {}).length > 0;
   const form = buildObject(schema);
   const json = el('textarea', { rows: 12, spellcheck: 'false' });
   let mode = 'form', shown = 'form';
 
-  const draft = state.drafts[tool.name];
+  const draft = state.drafts[draftKey];
   form.set(draft ?? schema.default ?? {});
   json.value = JSON.stringify(draft ?? exampleFor(schema) ?? {}, null, 2);
 
@@ -545,9 +679,11 @@ function select(tool) {
     const a = currentArgs();
     errBox.hidden = !a.error; errBox.textContent = a.error || '';
     if (a.error) return;
-    state.drafts[tool.name] = a.value;
+    state.drafts[draftKey] = a.value;
     run.disabled = true; run.replaceChildren(el('span', { class: 'spin' }), 'Sending…');
-    const r = await api('call', { endpoint: $('#endpoint').value, tool: tool.name, arguments: a.value });
+    const s = server();
+    const r = await api('call', { ...target(s), tool: tool.name, arguments: a.value }, s);
+    if (s.id !== server().id) return;
     run.disabled = false; run.replaceChildren(...runLabel());
     resultCard.replaceChildren(renderResult(r, tool, a.value));
   }}, ...runLabel());
@@ -555,7 +691,7 @@ function select(tool) {
     const a = currentArgs();
     copy(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: tool.name, arguments: a.value || {} } }, null, 2), copyRpc);
   }}, icon('copy'), 'Copy JSON-RPC');
-  const reset = el('button', { class: 'btn ghost', style: 'margin-left:auto', onclick: () => { delete state.drafts[tool.name]; select(tool); } }, icon('reset'), 'Reset');
+  const reset = el('button', { class: 'btn ghost', style: 'margin-left:auto', onclick: () => { delete state.drafts[draftKey]; select(tool); } }, icon('reset'), 'Reset');
 
   const ann = tool.annotations || {};
   const badges = [
@@ -702,7 +838,11 @@ function applyPreset(p) {
   const input = $('#headersDlg ' + sel);
   if (input) { input.focus(); const n = input.value.length; try { input.setSelectionRange(n, n); } catch { } }
 }
-function openHeaders() { renderHeaders(); $('#headersDlg').showModal(); }
+function openHeaders() {
+  $('#headersDlg .dlg-h h3').textContent = multi() ? 'Request headers · ' + serverName(server()) : 'Request headers';
+  $('#headersDlg .dlg-h p').textContent = `Sent to ${multi() ? serverName(server()) : 'the MCP server'} with every list and call request. Values are stored in this browser only${multi() ? ', separately for each server' : ''}.`;
+  renderHeaders(); $('#headersDlg').showModal();
+}
 $('#hdrCancel').onclick = () => $('#headersDlg').close();
 $('#headersBtn').onclick = openHeaders;
 $('#hdrClose').onclick = () => { $('#headersDlg').close(); connect(); };
@@ -711,17 +851,17 @@ $('#addHdr').onclick = () => { state.hdr.custom.push({ name: '', value: '', enab
 // ---------- Boot ----------
 $('#search').oninput = renderList;
 $('#connectBtn').onclick = connect;
-$('#endpoint').onkeydown = e => { if (e.key === 'Enter') connect(); };
-$('#brand').onclick = () => { history.replaceState(null, '', location.pathname); renderOverview(); };
+$('#brand').onclick = () => { setHash(''); renderOverview(); };
 
 (async () => {
   state.config = await api('config');
   document.title = state.config.title;
-  const ep = $('#endpoint');
-  ep.value = state.config.allowCustomEndpoint ? store.get('endpoint', state.config.endpoint) : state.config.endpoint;
-  ep.readOnly = !state.config.allowCustomEndpoint;
-  updateHeaderBtn();
-  connect();
+  const fromHash = parseHash().server, saved = store.get('server', null);
+  state.serverId = (fromHash && server(fromHash)?.id === fromHash) ? fromHash : server(saved)?.id ?? servers()[0].id;
+  renderPicker(); updateHeaderBtn();
+  await connect();
+  // Fill in the status dots of the other servers in the background.
+  for (const s of servers()) if (s.id !== state.serverId) probe(s);
 })();
 })();
 </script>

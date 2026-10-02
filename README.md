@@ -72,6 +72,49 @@ app.MapMcpExplorer("/mcp-explorer", o =>
 
 `MapMcpExplorer` bir `IEndpointConventionBuilder` döner, yani `.RequireAuthorization()` vb. eklenebilir.
 
+### Birden fazla MCP sunucusu
+
+Kendi MCP'nin yanında dış MCP sunucularını da ekleyebilirsin. UI'nın üstündeki **sunucu seçiciden** geçiş yapılır;
+her sunucunun tool listesi, header değerleri ve taslakları ayrı tutulur.
+
+```csharp
+app.MapMcpExplorer("/mcp-explorer", o =>
+{
+    o.AddServer("local", "/mcp", s => s.Title = "Kendi API'm");
+
+    o.AddServer("github", "https://api.githubcopilot.com/mcp/", s =>
+    {
+        s.Title = "GitHub";
+        s.AddHeader("Authorization", h => { h.Required = true; h.Secret = true; h.Placeholder = "Bearer <token>"; });
+    });
+
+    o.AddServer("payments", "https://payments.internal/mcp", s =>
+        s.AdditionalHeaders["X-Api-Key"] = builder.Configuration["Payments:ApiKey"]!); // tarayıcıya hiç gitmez
+
+    // veya appsettings'ten:
+    o.AddServersFrom(builder.Configuration.GetSection("McpExplorer:Servers"));
+});
+```
+
+```json
+"McpExplorer": {
+  "Servers": {
+    "example-backend": {
+      "Title": "Example Backend API",
+      "Endpoint": "http://localhost:5100/mcp",
+      "Headers": { "Authorization": { "Required": true, "Secret": true, "Placeholder": "Bearer <token>" } }
+    }
+  }
+}
+```
+
+- Seçicide her sunucunun durumu görünür: tool sayısı, *Headers required* veya *Unreachable*. Diğer sunucular arka planda kontrol edilir.
+- Derin link sunucuyu da içerir: `#github/get_issue`. Eski `#tool_adi` linkleri çalışmaya devam eder.
+- `AllowCustomEndpoint = true` ise kullanıcı seçicideki **Add server** ile geçici bir sunucu ekleyebilir (sadece o tarayıcıda saklanır).
+- Güvenlik: tarayıcıdaki `Authorization` header'ı varsayılan olarak **sadece bu uygulamadaki** (göreli endpoint'li) sunuculara aktarılır,
+  dış sunuculara aktarılmaz. Gerekirse `s.ForwardedHeaders.Add(...)` ile sunucu bazında açıkça belirt.
+- Hiç `AddServer` çağrılmazsa eski tek sunuculu davranış aynen sürer (`o.McpEndpoint`, `o.AddHeader` vb.); seçici gizlenir.
+
 ## Özellikler
 
 - Tool listesi + arama (ad / açıklama)
@@ -83,7 +126,8 @@ app.MapMcpExplorer("/mcp-explorer", o =>
 - Annotation rozetleri: read-only, destructive, idempotent, open-world
 - "Copy JSON-RPC" ile ham `tools/call` isteğini kopyalama
 - Projeye özel header tanımları (zorunlu, gizli, varsayılan değer) + serbest header editörü
-- Açık/koyu tema, mobil uyumlu, `#tool_adi` ile derin link
+- Birden fazla MCP sunucusu: sunucu seçici, sunucu bazlı header'lar, geçici sunucu ekleme
+- Açık/koyu tema, mobil uyumlu, `#sunucu/tool_adi` ile derin link
 
 ## Nasıl çalışır
 
@@ -94,9 +138,9 @@ MCP sunucusuna (Streamable HTTP / SSE) bağlanır:
 | Endpoint | Açıklama |
 |---|---|
 | `GET  {prefix}/` | UI |
-| `GET  {prefix}/api/config` | Başlık, varsayılan endpoint |
-| `POST {prefix}/api/connect` | `initialize` + `tools/list` (sayfalı) |
-| `POST {prefix}/api/call` | `tools/call` |
+| `GET  {prefix}/api/config` | Başlık ve sunucu listesi |
+| `POST {prefix}/api/connect` | `initialize` + `tools/list` (sayfalı); gövdede `serverId` |
+| `POST {prefix}/api/call` | `tools/call`; gövdede `serverId` |
 
 Bu sayede CORS sorunu olmaz ve aynı UI uzak MCP sunucularını da test edebilir.
 
